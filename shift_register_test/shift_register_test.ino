@@ -201,13 +201,29 @@ void loop() {
   //SDS011 connection test
   //setMuxA(0);
   //setMuxB(0);
-  
-  sds.begin(&MySerial);
+  Serial.println("init myserial");
+  //sds.begin(&MySerial);
   MySerial.flush();
   MySerial.begin(9600, SERIAL_8N1, 23, 17); //rx, tx*/
+  //delay(1000);
+  
+
+  //wait till buffer is full
+
+  while(MySerial.available() < 10) {
+    //wait
+  }
+  while(MySerial.available() > 0) {
+    Serial.println(MySerial.read());
+  }
+  /*if (MySerial.available() > 0) {
+    Serial.println(MySerial.read());
+  }*/
+  
+    
   //sds.begin(&MySerial);
   //delay(200);
-  while(true) {
+  /*while(true) {
     //if (MySerial.available() > 10) {
                   // read the incoming byte:
                   //char incomingByte = MySerial.read();
@@ -226,9 +242,9 @@ void loop() {
                     Serial.println("SDS011 error");
                   }
     //}
-    delay(1000);
+    delay(1000);*/
      
-  }
+  
   
   //MySerial.print("MySerial");
  /*Serial.write("read MySerial");*/
