@@ -202,47 +202,37 @@ void loop() {
   //setMuxA(0);
   //setMuxB(0);
   Serial.println("init myserial");
-  //sds.begin(&MySerial);
+  sds.begin(&MySerial); //works
   MySerial.flush();
   MySerial.begin(9600, SERIAL_8N1, 23, 17); //rx, tx*/
-  //delay(1000);
+  //sds.begin(&MySerial); //wont work, i think sds modifies the serial, when begin is called, we should give him the chance to do so
   
 
   //wait till buffer is full
 
-  while(MySerial.available() < 10) {
+  while(MySerial.available() < 10) { //wont work without it, i think sds wont wait for incoming packets, it just checks the buffer, if its empty it throws error
     //wait
   }
-  while(MySerial.available() > 0) {
-    Serial.println(MySerial.read());
-  }
-  /*if (MySerial.available() > 0) {
+  /*while(MySerial.available() > 0) {
     Serial.println(MySerial.read());
   }*/
   
-    
-  //sds.begin(&MySerial);
-  //delay(200);
-  /*while(true) {
-    //if (MySerial.available() > 10) {
-                  // read the incoming byte:
-                  //char incomingByte = MySerial.read();
   
-                  // say what you got:
-                  //Serial.print("I received: ");
-                  //Serial.println(incomingByte);
-                  float p25;
-                  float p10;
-                  int errorValue = sds.read(&p25, &p10);
-                  if (!errorValue) {
-                    Serial.println("P2.5: " + String(p25));
-                    Serial.println("P10:  " + String(p10));
-                  }
-                  else {
-                    Serial.println("SDS011 error");
-                  }
-    //}
-    delay(1000);*/
+    
+  
+  
+ 
+  float p25;
+  float p10;
+  int errorValue = sds.read(&p25, &p10);
+  if (!errorValue) {
+    Serial.println("P2.5: " + String(p25));
+    Serial.println("P10:  " + String(p10));
+  }
+  else {
+    Serial.println("SDS011 error");
+  }
+    
      
   
   
