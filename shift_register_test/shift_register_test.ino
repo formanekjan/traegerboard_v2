@@ -1,3 +1,6 @@
+#include <Adafruit_BME280.h>
+#include <Adafruit_Sensor.h>
+
 #define SERIN_595 21 
 #define CLK_595 13 
 #define RCLK_595 12 //the latch pin, to transfer from buffer to output
@@ -26,6 +29,8 @@ int portExpander = 0x00;
 #define A7_SLEEP 13
 #define A7_RESET 14
 #define SDS011_EN 15
+
+Adafruit_BME280 bme; //default constructor for I2C, default I2C ports are included in Wire.h
 
 void updatePorts() {
   shiftoutSlow(CLK_595, RCLK_595, SERIN_595, highByte(portExpander));
@@ -142,6 +147,7 @@ void setup() {
   Serial.print("testbyte:"+String(testbyte2)); 
   Serial.print("shiftedbyte:"+String(shiftedbyte)); 
   resetPorts();
+  Wire.begin(23,17);
   
 }
 
@@ -162,6 +168,30 @@ void loop() {
   /*shiftoutSlow(CLK_595, RCLK_595, SERIN_595, B00000010); //15-8
   shiftoutSlow(CLK_595, RCLK_595, SERIN_595, B00001000); //7-0
   latch(RCLK_595);*/
+
+   //BME280 connection test
+  if (!bme.begin()) {  
+    Serial.println("Could not find a valid BME280 sensor, check wiring!");
+   
+  }
+  else {
+    Serial.println("BME280 OK!");
+    
+  }
+
+    /*float temperature = -21.2345;
+    int pressure = 1023;
+    float humidity = 56.7;*/
+    
+    float temperature = bme.readTemperature();
+    float pressure = bme.readPressure();
+    float humidity = bme.readHumidity();
+   
+    Serial.println("temperature: "+String(temperature));
+    Serial.println("Pressure: "+String(pressure));
+    Serial.println("humidity: "+String(humidity));
+
+    delay(2000);
   
   
   
