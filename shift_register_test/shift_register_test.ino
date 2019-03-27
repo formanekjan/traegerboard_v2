@@ -33,7 +33,7 @@ int portExpander = 0x00;
 #define SDS011_EN 15 //high active
 
 Adafruit_BME280 bme; //default constructor for I2C, default I2C ports are included in Wire.h
-HardwareSerial MySerial(1);
+HardwareSerial MySerial(2);
 SDS011 sds;
 
 void updatePorts() {
@@ -174,7 +174,7 @@ void latch(byte rclkPin) {
 
 void setup() {
 
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.print("setup");
   byte testbyte = 0B00000001;
   byte testbyte2 = 0B00001000;
@@ -188,9 +188,9 @@ void setup() {
   //enableMT3608();
   disableMT3608();
   enableSDS011();
-  sds.begin(&MySerial);
-  MySerial.begin(9600, SERIAL_8N1, 23, 17); //rx, tx*/
-  
+  //sds.begin(&MySerial);
+  //MySerial.begin(9600, SERIAL_8N1, 23, 17); //rx, tx*/
+  //MySerial.flush();
   
   
   
@@ -199,36 +199,68 @@ void setup() {
 void loop() {
   
   //SDS011 connection test
-  setMuxA(0);
-  setMuxB(0);
+  //setMuxA(0);
+  //setMuxB(0);
   
-  delay(100);
-  float p25;
-  float p10;
-  int errorValue = sds.read(&p25, &p10);
-  if (!errorValue) {
-    Serial.println("P2.5: " + String(p25));
-    Serial.println("P10:  " + String(p10));
+  sds.begin(&MySerial);
+  MySerial.flush();
+  MySerial.begin(9600, SERIAL_8N1, 23, 17); //rx, tx*/
+  //sds.begin(&MySerial);
+  //delay(200);
+  while(true) {
+    //if (MySerial.available() > 10) {
+                  // read the incoming byte:
+                  //char incomingByte = MySerial.read();
+  
+                  // say what you got:
+                  //Serial.print("I received: ");
+                  //Serial.println(incomingByte);
+                  float p25;
+                  float p10;
+                  int errorValue = sds.read(&p25, &p10);
+                  if (!errorValue) {
+                    Serial.println("P2.5: " + String(p25));
+                    Serial.println("P10:  " + String(p10));
+                  }
+                  else {
+                    Serial.println("SDS011 error");
+                  }
+    //}
+    delay(1000);
+     
   }
-  else {
-    Serial.println("SDS011 error");
-  }
+  
+  //MySerial.print("MySerial");
+ /*Serial.write("read MySerial");*/
+  //Serial.write(MySerial.read());
+  //Serial.write(Serial.read());
+  //delay(100);
+  //MySerial.flush();
+  
+  delay(1000);
+  /*MySerial.flush();
+  MySerial.end();*/
+  
 
-  /*delay(1000);
+  //delay(1000);
   //BME280 connection test
-  setMuxA(1);
-  Wire.begin(23,17); //only used for BME280
-  if (!bme.begin()) {  
+  /*setMuxA(1);
+
+  TwoWire I2Cone = TwoWire(0);
+  I2Cone.begin(23,17,100000);
+  
+  //Wire.begin(23,17); //only used for BME280
+  delay(500);
+   if (!bme.begin(&I2Cone)) {  
+    Serial.println("Could not find a valid BME280 sensor, check wiring!");
+   
+  }
+  /*if (!bme.begin()) {  
     Serial.println("Could not find a valid BME280 sensor, check wiring!");
    
   }
   else {
     Serial.println("BME280 OK!");
-    
-  }
-
-    
-    
     float temperature = bme.readTemperature();
     float pressure = bme.readPressure();
     float humidity = bme.readHumidity();
@@ -236,8 +268,15 @@ void loop() {
     Serial.println("temperature: "+String(temperature));
     Serial.println("Pressure: "+String(pressure));
     Serial.println("humidity: "+String(humidity));
- */
-    delay(2000);
+  }
+ I2Cone.flush();
+ //I2Cone.endTransmission();*/
+  //delay(5000);
+    
+    
+    
+ 
+ 
   
   
   
