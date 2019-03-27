@@ -1,5 +1,7 @@
 #include <Adafruit_BME280.h>
 #include <Adafruit_Sensor.h>
+#include "SDS011.h"
+#include <HardwareSerial.h>
 
 #define SERIN_595 21 
 #define CLK_595 13 
@@ -16,7 +18,7 @@ int portExpander = 0x00;
 #define EXT1_OUT 0
 #define LOAD100MA_EN 1
 #define POWERBANK_EN 2
-#define MT3608_EN 3
+#define MT3608_EN 3  //low active
 #define MUX4052B_S1 4
 #define MUX4052B_S0 5
 #define MUX4052B_EN 6
@@ -28,9 +30,11 @@ int portExpander = 0x00;
 #define MUX4052A_EN 12
 #define A7_SLEEP 13
 #define A7_RESET 14
-#define SDS011_EN 15
+#define SDS011_EN 15 //high active
 
 Adafruit_BME280 bme; //default constructor for I2C, default I2C ports are included in Wire.h
+HardwareSerial MySerial(1);
+SDS011 sds;
 
 void updatePorts() {
   shiftoutSlow(CLK_595, RCLK_595, SERIN_595, highByte(portExpander));
@@ -39,13 +43,24 @@ void updatePorts() {
 }
 
 void enableMT3608() {
-  portExpander = portExpander & (0 << MT3608_EN); 
+  portExpander = portExpander & ~(1 << MT3608_EN); 
   updatePorts();
   
 }
 
 void disableMT3608() {
   portExpander = portExpander | (1 << MT3608_EN);
+  updatePorts();
+}
+
+void enableSDS011() {
+  portExpander = portExpander | (1 << SDS011_EN); 
+  updatePorts();
+  
+}
+
+void disableSDS011() {
+  portExpander = portExpander & ~(1 << MT3608_EN);
   updatePorts();
 }
 
@@ -66,6 +81,29 @@ void setMuxA(byte channel) {
    case 3:
     portExpander = portExpander | (1 << MUX4052A_S0);
      portExpander = portExpander | (1 << MUX4052A_S1);
+     break;
+  }
+
+  updatePorts();
+}
+
+void setMuxB(byte channel) {
+  switch(channel) {
+    case 0:
+      portExpander = portExpander & ~(1 << MUX4052B_S0);
+      portExpander = portExpander & ~(1 << MUX4052B_S1);
+      break;
+   case 1:
+      portExpander = portExpander | (1 << MUX4052B_S0);
+      portExpander = portExpander & ~(1 << MUX4052B_S1);
+      break;
+   case 2:
+     portExpander = portExpander & ~(1 << MUX4052B_S0);
+     portExpander = portExpander | (1 << MUX4052B_S1);
+     break;
+   case 3:
+    portExpander = portExpander | (1 << MUX4052B_S0);
+     portExpander = portExpander | (1 << MUX4052B_S1);
      break;
   }
 
@@ -147,29 +185,39 @@ void setup() {
   Serial.print("testbyte:"+String(testbyte2)); 
   Serial.print("shiftedbyte:"+String(shiftedbyte)); 
   resetPorts();
-  Wire.begin(23,17);
+  //enableMT3608();
+  disableMT3608();
+  enableSDS011();
+  sds.begin(&MySerial);
+  MySerial.begin(9600, SERIAL_8N1, 23, 17); //rx, tx*/
+  
+  
+  
   
 }
 
 void loop() {
-  //shiftoutSlow(CLK_595, RCLK_595, SERIN_595, 0x00);
-  /*shiftoutSlow(CLK_595, RCLK_595, SERIN_595, B00000000);
-  shiftoutSlow(CLK_595, RCLK_595, SERIN_595, B11111111);
-  latch(RCLK_595);*/
-  //enableMT3608();
-  setMuxA(1);
-  //portExpander = portExpander | (1 << MUX4052A_S0);
-  //portExpander = portExpander & (0 << MUX4052A_S1);
-  //portExpander = 0x8000;
-  //portExpander = 0x4000;
-  //portExpander = 0x2000;
-  //updatePorts();
-  //disableMT3608();
-  /*shiftoutSlow(CLK_595, RCLK_595, SERIN_595, B00000010); //15-8
-  shiftoutSlow(CLK_595, RCLK_595, SERIN_595, B00001000); //7-0
-  latch(RCLK_595);*/
+  
+  //SDS011 connection test
+  setMuxA(0);
+  setMuxB(0);
+  
+  delay(100);
+  float p25;
+  float p10;
+  int errorValue = sds.read(&p25, &p10);
+  if (!errorValue) {
+    Serial.println("P2.5: " + String(p25));
+    Serial.println("P10:  " + String(p10));
+  }
+  else {
+    Serial.println("SDS011 error");
+  }
 
-   //BME280 connection test
+  /*delay(1000);
+  //BME280 connection test
+  setMuxA(1);
+  Wire.begin(23,17); //only used for BME280
   if (!bme.begin()) {  
     Serial.println("Could not find a valid BME280 sensor, check wiring!");
    
@@ -179,9 +227,7 @@ void loop() {
     
   }
 
-    /*float temperature = -21.2345;
-    int pressure = 1023;
-    float humidity = 56.7;*/
+    
     
     float temperature = bme.readTemperature();
     float pressure = bme.readPressure();
@@ -190,7 +236,7 @@ void loop() {
     Serial.println("temperature: "+String(temperature));
     Serial.println("Pressure: "+String(pressure));
     Serial.println("humidity: "+String(humidity));
-
+ */
     delay(2000);
   
   
