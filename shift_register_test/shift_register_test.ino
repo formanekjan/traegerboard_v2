@@ -199,8 +199,8 @@ void setup() {
 void loop() {
   
   //SDS011 connection test
-  //setMuxA(0);
-  //setMuxB(0);
+  setMuxA(0);
+  setMuxB(0);
   Serial.println("init myserial");
   sds.begin(&MySerial); //works
   MySerial.flush();
@@ -213,15 +213,7 @@ void loop() {
   while(MySerial.available() < 10) { //wont work without it, i think sds wont wait for incoming packets, it just checks the buffer, if its empty it throws error
     //wait
   }
-  /*while(MySerial.available() > 0) {
-    Serial.println(MySerial.read());
-  }*/
   
-  
-    
-  
-  
- 
   float p25;
   float p10;
   int errorValue = sds.read(&p25, &p10);
@@ -233,30 +225,19 @@ void loop() {
     Serial.println("SDS011 error");
   }
     
-     
-  
-  
-  //MySerial.print("MySerial");
- /*Serial.write("read MySerial");*/
-  //Serial.write(MySerial.read());
-  //Serial.write(Serial.read());
-  //delay(100);
-  //MySerial.flush();
-  
-  delay(1000);
   /*MySerial.flush();
   MySerial.end();*/
   
 
-  //delay(1000);
+  
   //BME280 connection test
-  /*setMuxA(1);
+  setMuxA(1);
 
   TwoWire I2Cone = TwoWire(0);
   I2Cone.begin(23,17,100000);
   
   //Wire.begin(23,17); //only used for BME280
-  delay(500);
+  //delay(500);
    if (!bme.begin(&I2Cone)) {  
     Serial.println("Could not find a valid BME280 sensor, check wiring!");
    
@@ -264,20 +245,20 @@ void loop() {
   /*if (!bme.begin()) {  
     Serial.println("Could not find a valid BME280 sensor, check wiring!");
    
-  }
+  }*/
   else {
     Serial.println("BME280 OK!");
     float temperature = bme.readTemperature();
-    float pressure = bme.readPressure();
+    int pressure = bme.readPressure();
     float humidity = bme.readHumidity();
    
     Serial.println("temperature: "+String(temperature));
-    Serial.println("Pressure: "+String(pressure));
+    Serial.println("Pressure: "+String(pressure/100));
     Serial.println("humidity: "+String(humidity));
   }
- I2Cone.flush();
+ //I2Cone.flush();
  //I2Cone.endTransmission();*/
-  //delay(5000);
+ delay(1000);
     
     
     
