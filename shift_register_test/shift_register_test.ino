@@ -10,10 +10,6 @@
 #define MUX_X1 17 
 #define MUX_X2 23 
 
-//achtung invertiert in meinem fall
-//achtung max 50Khz
-
-int portExpander = 0x00;
 
 #define EXT1_OUT 0
 #define LOAD100MA_EN 1
@@ -32,8 +28,15 @@ int portExpander = 0x00;
 #define A7_RESET 14
 #define SDS011_EN 15 //high active
 
+//achtung invertiert in meinem fall
+//achtung max 50Khz
+
+int portExpander = 0x00;
+int displayState = 0;
+
+
 Adafruit_BME280 bme; //default constructor for I2C, default I2C ports are included in Wire.h
-HardwareSerial MySerial(2);
+HardwareSerial MySerial(1);
 SDS011 sds;
 //U8G2_SSD1306_128X64_NONAME_F_SW_I2C oledDisplay(U8G2_R0, 15, 4, U8X8_PIN_NONE);
 U8G2_SSD1306_128X64_NONAME_F_SW_I2C oledDisplay(U8G2_R0, 15, 4, 16);
@@ -180,7 +183,7 @@ void setup() {
   Serial.begin(9600);
   Serial.print("setup");
   MySerial.begin(9600, SERIAL_8N1, 23, 17); //rx, tx*/
-  /*byte testbyte = 0B00000001;
+  byte testbyte = 0B00000001;
   byte testbyte2 = 0B00001000;
   byte shiftedbyte = reverseByte(testbyte2);
   //byte testbyte = 254;
@@ -191,16 +194,12 @@ void setup() {
   resetPorts();
   //enableMT3608();
   disableMT3608();
-  enableSDS011();*/
-  oledDisplay.begin();
-  oledDisplay.clearBuffer();
-  oledDisplay.setFont(u8g2_font_ncenB14_tr);
-  oledDisplay.drawStr(0,24,"Hello World!");
-  oledDisplay.sendBuffer();
+  enableSDS011();
+  
   //sds.begin(&MySerial);
   //MySerial.begin(9600, SERIAL_8N1, 23, 17); //rx, tx*/
   //MySerial.flush();
-  
+  oledDisplay.begin();
   
   
 }
@@ -215,15 +214,10 @@ void loop() {
   MySerial.flush();
   MySerial.begin(9600, SERIAL_8N1, 23, 17); //rx, tx*/
   //sds.begin(&MySerial); //wont work, i think sds modifies the serial, when begin is called, we should give him the chance to do so
-  oledDisplay.begin();
-  oledDisplay.clearBuffer();
-  oledDisplay.setFont(u8g2_font_ncenB14_tr);
-  oledDisplay.drawStr(0,24,"Hello World!");
-  oledDisplay.sendBuffer();
 
   //wait till buffer is full
 
-  /*while(MySerial.available() < 10) { //wont work without it, i think sds wont wait for incoming packets, it just checks the buffer, if its empty it throws error
+  while(MySerial.available() < 10) { //wont work without it, i think sds wont wait for incoming packets, it just checks the buffer, if its empty it throws error
     //wait
   }
   
@@ -238,16 +232,18 @@ void loop() {
     Serial.println("SDS011 error");
   }
     
-  /*MySerial.flush();
-  MySerial.end();*/
+  MySerial.flush();
+  MySerial.end();
   
 
   
   //BME280 connection test
-  /*setMuxA(1);
-
+  setMuxA(1);
   TwoWire I2Cone = TwoWire(0);
   I2Cone.begin(23,17,100000);
+  float temperature;
+  int pressure;
+  float humidity;
   
   //Wire.begin(23,17); //only used for BME280
   //delay(500);
@@ -259,11 +255,11 @@ void loop() {
     Serial.println("Could not find a valid BME280 sensor, check wiring!");
    
   }*/
-  /*else {
+  else {
     Serial.println("BME280 OK!");
-    float temperature = bme.readTemperature();
-    int pressure = bme.readPressure();
-    float humidity = bme.readHumidity();
+    temperature = bme.readTemperature();
+    pressure = bme.readPressure();
+    humidity = bme.readHumidity();
    
     Serial.println("temperature: "+String(temperature));
     Serial.println("Pressure: "+String(pressure/100));
@@ -271,7 +267,42 @@ void loop() {
   }
  //I2Cone.flush();
  //I2Cone.endTransmission();*/
- delay(1000);
+  
+  oledDisplay.clearBuffer();
+  oledDisplay.setFont(u8g2_font_crox2hb_tf);
+  
+  char charbuffer[50];
+  String temp;
+  if(displayState == 0) {
+    displayState = 1;
+     temp = "Temp: "+ String(temperature);
+    temp.toCharArray(charbuffer, 50);
+    oledDisplay.drawStr(0,16,charbuffer);
+  
+    temp = "Pressure: "+ String(pressure/100);
+    temp.toCharArray(charbuffer, 50);
+    oledDisplay.drawStr(0,32,charbuffer);
+    
+    temp = "humidity: "+ String(humidity);
+    temp.toCharArray(charbuffer, 50);
+    oledDisplay.drawStr(0,48,charbuffer);
+  }
+  else {
+    displayState = 0;
+     temp = "pm10: "+ String(p10);
+    temp.toCharArray(charbuffer, 50);
+    oledDisplay.drawStr(0,16,charbuffer);
+  
+    temp = "pm2.5: "+ String(p25);
+    temp.toCharArray(charbuffer, 50);
+    oledDisplay.drawStr(0,32,charbuffer);
+    
+  }
+  
+ 
+  oledDisplay.sendBuffer();
+  
+  delay(2000);
     
     
     
